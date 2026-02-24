@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>炸金花胜率计算器 🎲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .section h2 {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .mode-selector {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+
+        .mode-selector label {
+            margin-right: 20px;
+            font-size: 16px;
+            color: #1976d2;
+            font-weight: 500;
+        }
+
+        .mode-selector input[type="radio"] {
+            margin-right: 5px;
+            transform: scale(1.2);
+        }
+
+        .card-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .card-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .card-group select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 120px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .card-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 100%;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group .hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            border-left: 5px solid #4caf50;
+            display: none;
+        }
+
+        #result h3 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        #result .result-item {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 16px;
+        }
+
+        #result .result-value {
+            font-weight: bold;
+            color: #4caf50;
+        }
+
+        #result .mode-info {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #c8e6c9;
+            border-radius: 5px;
+            color: #2e7d32;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .card-group {
+                flex-direction: column;
+            }
+
+            .card-group select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>炸金花胜率计算器 🎲</h1>
+
+        <div class="section">
+            <h2>游戏模式选择</h2>
+            <div class="mode-selector">
+                <label>
+                    <input type="radio" name="game-mode" value="classic" checked>
+                    经典模式 (每人3张牌)
+                </label>
+                <label>
+                    <input type="radio" name="game-mode" value="advanced">
+                    进阶模式 (每人4张牌，自动选最优3张)
+                </label>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>输入你的手牌</h2>
+            <div class="card-group">
+                <div>
+                    <label>第1张牌 - 点数</label>
+                    <select id="card1-value">
+                        <option value="1">A</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">J</option>
+                        <option value="12">Q</option>
+                        <option value="13">K</option>
+                    </select>
+                </div>
+                <div>
+                    <label>第1张牌 - 花色</label>
+                    <select id="card1-suit">
+                        <option value="0">红桃</option>
+                        <option value="1">方片</option>
+                        <option value="2">梅花</option>
+                        <option value="3">黑桃</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-group">
+                <div>
+                    <label>第2张牌 - 点数</label>
+                    <select id="card2-value">
+                        <option value="1">A</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">J</option>
+                        <option value="12">Q</option>
+                        <option value="13">K</option>
+                    </select>
+                </div>
+                <div>
+                    <label>第2张牌 - 花色</label>
+                    <select id="card2-suit">
+                        <option value="0">红桃</option>
+                        <option value="1">方片</option>
+                        <option value="2">梅花</option>
+                        <option value="3">黑桃</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-group">
+                <div>
+                    <label>第3张牌 - 点数</label>
+                    <select id="card3-value">
+                        <option value="1">A</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">J</option>
+                        <option value="12">Q</option>
+                        <option value="13">K</option>
+                    </select>
+                </div>
+                <div>
+                    <label>第3张牌 - 花色</label>
+                    <select id="card3-suit">
+                        <option value="0">红桃</option>
+                        <option value="1">方片</option>
+                        <option value="2">梅花</option>
+                        <option value="3">黑桃</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-group" id="card4-group" style="display: none;">
+                <div>
+                    <label>第4张牌 - 点数</label>
+                    <select id="card4-value">
+                        <option value="1">A</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">J</option>
+                        <option value="12">Q</option>
+                        <option value="13">K</option>
+                    </select>
+                </div>
+                <div>
+                    <label>第4张牌 - 花色</label>
+                    <select id="card4-suit">
+                        <option value="0">红桃</option>
+                        <option value="1">方片</option>
+                        <option value="2">梅花</option>
+                        <option value="3">黑桃</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>游戏设置</h2>
+            <div class="input-group">
+                <label>总玩家人数</label>
+                <input type="number" id="player-count" value="6" min="3" max="10">
+                <div class="hint">可选范围：3-10</div>
+            </div>
+            <div class="input-group">
+                <label>模拟局数</label>
+                <input type="number" id="simulation-count" value="10000" min="1000">
+                <div class="hint">建议设置10000+</div>
+            </div>
+        </div>
+
+        <button onclick="calculate()">计算胜率</button>
+
+        <div id="result">
+            <h3>计算结果</h3>
+            <div class="mode-info" id="mode-info"></div>
+            <div class="result-item">胜率：<span id="win-rate" class="result-value"></span></div>
+            <!-- 新增：弃牌建议行，样式与原有结果项一致 -->
+            <div class="result-item">建议：<span id="advice-text" class="result-value"></span></div>
+        </div>
+    </div>
+
+    <script>
+        // 模式切换事件
+        document.querySelectorAll('input[name="game-mode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const card4Group = document.getElementById('card4-group');
+                if (this.value === 'advanced') {
+                    card4Group.style.display = 'flex';
+                } else {
+                    card4Group.style.display = 'none';
+                }
+            });
+        });
+
+        // --- 基础定义 ---
+        const SUIT_NAMES = ["红桃", "方片", "梅花", "黑桃"];
+        const HAND_TYPE_NAMES = ["豹子", "顺金", "金花", "顺子", "对子", "单张"];
+
+        class Card {
+            constructor(value, suit) {
+                this.value = value;   // 1-13, A=1
+                this.suit = suit;      // 0-3
+            }
+
+            toString() {
+                let valStr;
+                switch (this.value) {
+                    case 1: valStr = "A"; break;
+                    case 11: valStr = "J"; break;
+                    case 12: valStr = "Q"; break;
+                    case 13: valStr = "K"; break;
+                    default: valStr = this.value.toString(); break;
+                }
+                return valStr + SUIT_NAMES[this.suit];
+            }
+        }
+
+        class Hand {
+            constructor(cards) {
+                this.cards = cards;
+                // 按降序排序，A视为14
+                this.cards.sort((a, b) => {
+                    const va = (a.value === 1) ? 14 : a.value;
+                    const vb = (b.value === 1) ? 14 : b.value;
+                    return vb - va;
+                });
+            }
+
+            getHandType() {
+                const isFlush = (this.cards[0].suit === this.cards[1].suit && this.cards[1].suit === this.cards[2].suit);
+                let isStraight = false;
+                let straightVals = []; // 用于顺子和顺金的降序值
+
+                const v0 = this.cards[0].value; // 原始值，A=1
+                const v1 = this.cards[1].value;
+                const v2 = this.cards[2].value;
+
+                const hasPair = (v0 === v1 || v1 === v2 || v0 === v2);
+                const hasThree = (v0 === v1 && v1 === v2);
+
+                // 顺子判定：使用原始值排序后判断
+                let sortedVals = [v0, v1, v2];
+                sortedVals.sort((a, b) => a - b); // 升序，1最小
+
+                if (sortedVals[0] === 1 && sortedVals[1] === 2 && sortedVals[2] === 3) {
+                    // A23 顺子（最小）
+                    isStraight = true;
+                    straightVals = [3, 2, 1]; // 降序，A仍为1（最小）
+                } else if (sortedVals[0] === 1 && sortedVals[1] === 12 && sortedVals[2] === 13) {
+                    // QKA 顺子（最大）
+                    isStraight = true;
+                    straightVals = [14, 13, 12]; // 降序，A视为14
+                } else if (sortedVals[1] === sortedVals[0] + 1 && sortedVals[2] === sortedVals[1] + 1) {
+                    // 普通顺子
+                    isStraight = true;
+                    straightVals = [sortedVals[2], sortedVals[1], sortedVals[0]]; // 降序
+                }
+
+                if (hasThree) return { type: 0, values: [v0] }; // 豹子，值随后在强度中转换
+                if (isFlush && isStraight) return { type: 1, values: straightVals }; // 顺金
+                if (isFlush) return { type: 2, values: [v0, v1, v2] }; // 金花，已降序
+                if (isStraight) return { type: 3, values: straightVals }; // 顺子
+                if (hasPair) {
+                    let pairValue, singleValue;
+                    if (v0 === v1) {
+                        pairValue = v0;
+                        singleValue = v2;
+                    } else if (v1 === v2) {
+                        pairValue = v1;
+                        singleValue = v0;
+                    } else { // v0 === v2
+                        pairValue = v0;
+                        singleValue = v1;
+                    }
+                    return { type: 4, values: [pairValue, singleValue] };
+                }
+                return { type: 5, values: [v0, v1, v2] }; // 单张，已降序
+            }
+
+            getStrength() {
+                const handInfo = this.getHandType();
+                const type = handInfo.type;
+                const values = handInfo.values;
+
+                let baseScore = 0;
+                switch (type) {
+                    case 0: baseScore = 600000000; break; // 豹子
+                    case 1: baseScore = 500000000; break; // 顺金
+                    case 2: baseScore = 400000000; break; // 金花
+                    case 3: baseScore = 300000000; break; // 顺子
+                    case 4: baseScore = 200000000; break; // 对子
+                    case 5: baseScore = 100000000; break; // 单张
+                }
+
+                let score = baseScore;
+                for (let i = 0; i < values.length; i++) {
+                    let v = values[i];
+                    // 对于豹子、金花、对子、单张，A需要作为14比较（顺子和顺金已在straightVals中处理）
+                    if (type === 0 || type === 2 || type === 4 || type === 5) {
+                        if (v === 1) v = 14;
+                    }
+                    // 加权：第一位乘百万，第二位乘千，第三位乘一
+                    if (i === 0) score += v * 1000000;
+                    else if (i === 1) score += v * 1000;
+                    else score += v;
+                }
+                return score;
+            }
+
+            getTypeString() {
+                return HAND_TYPE_NAMES[this.getHandType().type];
+            }
+        }
+
+        // 从4张牌中选出最好的3张牌组合
+        function createBestHandFromFourCards(fourCards) {
+            if (fourCards.length !== 4) {
+                return new Hand([]);
+            }
+
+            const possibleHands = [];
+            // 生成所有4种3张牌组合
+            for (let i = 0; i < 4; i++) {
+                const current3 = [];
+                for (let j = 0; j < 4; j++) {
+                    if (i !== j) {
+                        current3.push(fourCards[j]);
+                    }
+                }
+                possibleHands.push(new Hand(current3));
+            }
+
+            // 找出牌力最大的手牌
+            let bestHand = possibleHands[0];
+            for (let i = 1; i < possibleHands.length; i++) {
+                if (compareHands(possibleHands[i], bestHand) > 0) {
+                    bestHand = possibleHands[i];
+                }
+            }
+
+            return bestHand;
+        }
+
+        function compareHands(a, b) {
+            const strA = a.getStrength();
+            const strB = b.getStrength();
+            if (strA !== strB) return strA > strB ? 1 : -1;
+            return 0;
+        }
+
+        function calculate() {
+            // 获取游戏模式
+            const gameMode = document.querySelector('input[name="game-mode"]:checked').value;
+            const fourCardMode = gameMode === 'advanced';
+
+            // 获取用户输入
+            const card1Value = parseInt(document.getElementById('card1-value').value);
+            const card1Suit = parseInt(document.getElementById('card1-suit').value);
+            const card2Value = parseInt(document.getElementById('card2-value').value);
+            const card2Suit = parseInt(document.getElementById('card2-suit').value);
+            const card3Value = parseInt(document.getElementById('card3-value').value);
+            const card3Suit = parseInt(document.getElementById('card3-suit').value);
+            const playerCount = parseInt(document.getElementById('player-count').value);
+            const simulationCount = parseInt(document.getElementById('simulation-count').value);
+
+            // 创建用户手牌
+            const userInputCards = [
+                new Card(card1Value, card1Suit),
+                new Card(card2Value, card2Suit),
+                new Card(card3Value, card3Suit)
+            ];
+
+            // 如果是进阶模式，添加第4张牌
+            if (fourCardMode) {
+                const card4Value = parseInt(document.getElementById('card4-value').value);
+                const card4Suit = parseInt(document.getElementById('card4-suit').value);
+                userInputCards.push(new Card(card4Value, card4Suit));
+            }
+
+            // 检查重复牌
+            const cardSet = new Set();
+            for (const card of userInputCards) {
+                const key = `${card.value}-${card.suit}`;
+                if (cardSet.has(key)) {
+                    alert('不能输入重复的牌！');
+                    return;
+                }
+                cardSet.add(key);
+            }
+
+            // 选择最优手牌
+            let userHand;
+            if (fourCardMode) {
+                userHand = createBestHandFromFourCards(userInputCards);
+            } else {
+                userHand = new Hand(userInputCards);
+            }
+
+            const otherPlayersCount = playerCount - 1;
+            const cardsToDeal = fourCardMode ? 4 : 3;
+
+            // 构建剩余牌堆
+            const remainingDeck = [];
+            for (let s = 0; s < 4; s++) {
+                for (let v = 1; v <= 13; v++) {
+                    let isUserCard = false;
+                    for (const uc of userInputCards) {
+                        if (uc.suit === s && uc.value === v) {
+                            isUserCard = true;
+                            break;
+                        }
+                    }
+                    if (!isUserCard) {
+                        remainingDeck.push(new Card(v, s));
+                    }
+                }
+            }
+
+            // 蒙特卡罗模拟
+            let userWins = 0;
+            let userTies = 0;
+
+            for (let r = 0; r < simulationCount; r++) {
+                // 洗牌
+                const shuffledDeck = [...remainingDeck];
+                for (let i = shuffledDeck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledDeck[i], shuffledDeck[j]] = [shuffledDeck[j], shuffledDeck[i]];
+                }
+
+                // 发牌给对手
+                const opponents = [];
+                for (let i = 0; i < otherPlayersCount; i++) {
+                    const pCards = [];
+                    for (let j = 0; j < cardsToDeal; j++) {
+                        pCards.push(shuffledDeck[i * cardsToDeal + j]);
+                    }
+
+                    // 如果是4张牌模式，电脑也自动选最优3张
+                    if (fourCardMode) {
+                        opponents.push(createBestHandFromFourCards(pCards));
+                    } else {
+                        opponents.push(new Hand(pCards));
+                    }
+                }
+
+                // 找出最大牌
+                const allHands = [userHand, ...opponents];
+                const winners = [0];
+
+                for (let i = 1; i < allHands.length; i++) {
+                    const cmp = compareHands(allHands[i], allHands[winners[0]]);
+                    if (cmp > 0) {
+                        winners.length = 0;
+                        winners.push(i);
+                    } else if (cmp === 0) {
+                        winners.push(i);
+                    }
+                }
+
+                const userWonStrictly = winners.length === 1 && winners[0] === 0;
+                const userTiedForFirst = winners.includes(0) && winners.length > 1;
+
+                if (userWonStrictly) userWins++;
+                else if (userTiedForFirst) userTies++;
+            }
+
+            // 计算结果
+            const winRate = (userWins / simulationCount * 100).toFixed(2);
+            const tieRate = (userTies / simulationCount * 100).toFixed(2);
+            const loseRate = ((simulationCount - userWins - userTies) / simulationCount * 100).toFixed(2);
+            const noLoseRate = ((userWins + userTies) / simulationCount * 100).toFixed(2);
+
+            // 显示结果
+            document.getElementById('mode-info').textContent = `游戏模式: ${fourCardMode ? '进阶模式 (4选3)' : '经典模式 (3张)'}`;
+            document.getElementById('win-rate').textContent = winRate + '%';
+            
+           
+            const winRateFloat = parseFloat(winRate);           // 百分比数值，如 20.00
+            const threshold = 100 / playerCount;                // 1/人数 对应的百分比，如 16.666...
+            const advice = winRateFloat > threshold ? "不推荐弃牌" : "推荐弃牌";
+            document.getElementById('advice-text').textContent = advice;
+            
+            
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
